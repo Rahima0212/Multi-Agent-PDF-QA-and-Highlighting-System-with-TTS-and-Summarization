@@ -1,0 +1,16 @@
+# Ignore environment variables
+.env
+
+# Ignore python virtual environments
+venv/
+.venv/
+__pycache__/
+
+# Ignore temporary data and outputs
+data/docs/
+data/highlights/
+*.mp3
+*.pdf
+
+# Ignore system files
+.DS_Store
