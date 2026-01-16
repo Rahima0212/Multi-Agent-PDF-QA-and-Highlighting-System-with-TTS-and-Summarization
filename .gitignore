@@ -5,6 +5,7 @@
 venv/
 .venv/
 __pycache__/
+env/
 .env
 # Ignore temporary data and outputs
 data/docs/
