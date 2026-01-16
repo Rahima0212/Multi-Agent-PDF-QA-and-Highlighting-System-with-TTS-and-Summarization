@@ -29,8 +29,8 @@ async def extraction_node(state: AgentState):
         agent = ExtractionAgent()
         # Extraction can be CPU bound, but since it's PyMuPDF it's usually fast.
         # We can run it in a thread if needed, but for now we'll just await if it were async.
-        text = agent.extract_text(state["pdf_bytes"])
-        metadata = agent.extract_metadata(state["pdf_bytes"])
+        text = await agent.extract_text(state["pdf_bytes"])
+        metadata = await agent.extract_metadata(state["pdf_bytes"])
         duration = time.perf_counter() - start_time
         print(f"PERF_DEBUG: Extraction took {duration:.2f}s. Text length: {len(text)}")
         
@@ -106,10 +106,13 @@ async def tts_node(state: dict):
         # Clean text for TTS
         clean_text = clean_text_for_tts(summary_text)
 
-        # Use edge-tts (much faster than gTTS)
-        import edge_tts
-        communicate = edge_tts.Communicate(clean_text, "en-US-AriaNeural")
-        await communicate.save(file_path)
+        # Use new Async TTS Agent
+        from app.agents.tts_agent import TTSAgent
+        agent = TTSAgent()
+        audio_path = await agent.generate_audio(clean_text)
+        
+        # Extract filename from path for logging
+        audio_filename = os.path.basename(audio_path)
 
         duration = time.perf_counter() - start_time
         print(f"PERF_DEBUG: TTS took {duration:.2f}s. Path: /data/audio/{audio_filename}")
@@ -152,7 +155,7 @@ async def highlighting_node(state: AgentState):
         from app.agents.highlighting_agent import HighlightingAgent
         agent = HighlightingAgent()
         # Use the extracted quotes for high-precision highlighting
-        highlight_path = agent.highlight_text(state["pdf_bytes"], state.get("quotes", []))
+        highlight_path = await agent.highlight_text(state["pdf_bytes"], state.get("quotes", []))
         duration = time.perf_counter() - start_time
         print(f"PERF_DEBUG: Highlighting took {duration:.2f}s. Path: {highlight_path}")
         return {"highlight_path": highlight_path}

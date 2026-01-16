@@ -155,14 +155,13 @@ async def generate_full_pdf_audio(doc_id: int, db: AsyncSession = Depends(get_db
     file_path = os.path.join(audio_dir, audio_filename)
     
     # Clean text for TTS
+    # Clean text for TTS
     clean_text = clean_text_for_tts(doc.text_content)
     
-    # Use edge-tts (much faster than gTTS)
-    # Voice options: en-US-AriaNeural, en-US-GuyNeural, en-GB-SoniaNeural
-    communicate = edge_tts.Communicate(clean_text, "en-US-AriaNeural")
-    await communicate.save(file_path)
-    
-    audio_path = f"/data/audio/{audio_filename}"
+    # Use TTSAgent
+    from app.agents.tts_agent import TTSAgent
+    agent = TTSAgent()
+    audio_path = await agent.generate_audio(clean_text)
     
     return {"audio_path": audio_path, "message": "Audio generated successfully"}
 
@@ -185,12 +184,12 @@ async def generate_selection_audio(text: str):
     file_path = os.path.join(audio_dir, audio_filename)
     
     # Clean text for TTS
+    # Clean text for TTS
     clean_text = clean_text_for_tts(text)
     
-    # Use edge-tts
-    communicate = edge_tts.Communicate(clean_text, "en-US-AriaNeural")
-    await communicate.save(file_path)
-    
-    audio_path = f"/data/audio/{audio_filename}"
+    # Use TTSAgent
+    from app.agents.tts_agent import TTSAgent
+    agent = TTSAgent()
+    audio_path = await agent.generate_audio(clean_text)
     
     return {"audio_path": audio_path, "message": "Selection audio generated successfully"}

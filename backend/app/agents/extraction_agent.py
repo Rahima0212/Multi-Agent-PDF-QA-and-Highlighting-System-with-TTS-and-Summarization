@@ -1,20 +1,26 @@
 import fitz
-from io import BytesIO
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Document
 from sqlalchemy import select
 
 class ExtractionAgent:
-    def extract_text(self, pdf_bytes: bytes) -> str:
-        """Requirement: Extracts text from a PDF file provided as bytes."""
+    async def extract_text(self, pdf_bytes: bytes) -> str:
+        """Requirement: Extracts text from a PDF file provided as bytes. (Async)"""
+        return await asyncio.to_thread(self._extract_text_sync, pdf_bytes)
+
+    def _extract_text_sync(self, pdf_bytes: bytes) -> str:
         text = ""
         with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
             for page in doc:
                 text += page.get_text()
         return text
 
-    def extract_metadata(self, pdf_bytes: bytes) -> dict:
-        """Requirement: Extracts metadata from a PDF file."""
+    async def extract_metadata(self, pdf_bytes: bytes) -> dict:
+        """Requirement: Extracts metadata from a PDF file. (Async)"""
+        return await asyncio.to_thread(self._extract_metadata_sync, pdf_bytes)
+
+    def _extract_metadata_sync(self, pdf_bytes: bytes) -> dict:
         with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
             return doc.metadata
 
@@ -25,10 +31,10 @@ class ExtractionAgent:
         """
         try:
             # 1. Extract Text
-            text = self.extract_text(pdf_bytes)
+            text = await self.extract_text(pdf_bytes)
             
             # 2. Extract Metadata (optional but good for context)
-            metadata = self.extract_metadata(pdf_bytes)
+            metadata = await self.extract_metadata(pdf_bytes)
 
             return {"text": text, "metadata": metadata}
         except Exception as e:

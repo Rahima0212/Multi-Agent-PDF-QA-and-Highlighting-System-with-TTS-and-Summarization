@@ -1,6 +1,7 @@
 import fitz  # PyMuPDF
 import os
 import uuid
+import asyncio
 
 class HighlightingAgent:
     def __init__(self, storage_dir: str = "/data/highlights"):
@@ -8,10 +9,13 @@ class HighlightingAgent:
         if not os.path.exists(self.storage_dir):
             os.makedirs(self.storage_dir, exist_ok=True)
 
-    def highlight_text(self, pdf_bytes: bytes, quotes: list) -> str:
+    async def highlight_text(self, pdf_bytes: bytes, quotes: list) -> str:
         """
-        Highlights specific quotes in a PDF and returns the relative path to the saved file.
+        Highlights specific quotes in a PDF and returns the relative path to the saved file. (Async)
         """
+        return await asyncio.to_thread(self._highlight_text_sync, pdf_bytes, quotes)
+
+    def _highlight_text_sync(self, pdf_bytes: bytes, quotes: list) -> str:
         if not quotes:
             print("DEBUG: No quotes provided for highlighting.")
             return None
